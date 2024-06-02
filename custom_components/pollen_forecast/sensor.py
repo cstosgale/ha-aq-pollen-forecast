@@ -5,6 +5,24 @@ import requests_cache
 import pandas as pd
 from retry_requests import retry
 from homeassistant.helpers.entity import Entity
+from homeassistant import config_entries, core
+from .const import DOMAIN
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.const import (
+    CONF_LATITUDE,
+    CONF_LONGITUDE
+)
+
+async def async_setup_entry(
+    hass: core.HomeAssistant,
+    config_entry: config_entries.ConfigEntry,
+    async_add_entities,
+):
+    """Setup sensors from a config entry created in the integrations UI."""
+    config = hass.data[DOMAIN][config_entry.entry_id]
+    session = async_get_clientsession(hass)
+    sensors = [PollenSensor(CONF_LATITUDE, CONF_LONGITUDE)]
+    async_add_entities(sensors, update_before_add=True)
 
 class PollenSensor(Entity):
     """Representation of a Pollen Sensor."""
