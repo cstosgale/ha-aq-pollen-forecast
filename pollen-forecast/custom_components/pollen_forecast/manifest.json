@@ -1,0 +1,11 @@
+{
+  "codeowners": ["@cstosgale"],
+  "config_flow": false,
+  "dependencies": [],
+  "documentation": "https://github.com/cstosgale/ha-pollen-forecast",
+  "domain": "pollen_forecast",
+  "iot_class": "assumed_state",
+  "name": "Pollen Forecast",
+  "requirements": [],
+  "version": "1.0.0"
+}
