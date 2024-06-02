@@ -1,24 +1,23 @@
-from homeassistant import core
-import voluptuous as vol
+"""Pollen Forecast custom component."""
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
-
-from .sensor import PollenSensor
+from homeassistant.helpers.typing import ConfigType
+from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN
 
-CONFIG_SCHEMA = vol.Schema({vol.Optional(CONF_LATITUDE): float, vol.Optional(CONF_LONGITUDE): float}, extra=vol.ALLOW_EXTRA)
-
-async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the Pollen Sensor component."""
-    hass.data[DOMAIN] = {}
-    hass.data[DOMAIN][CONF_LATITUDE] = config.get(CONF_LATITUDE, hass.config.latitude)
-    hass.data[DOMAIN][CONF_LONGITUDE] = config.get(CONF_LONGITUDE, hass.config.longitude)
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the component from configuration.yaml (if any)."""
+    # Here you can import configuration from configuration.yaml if necessary
     return True
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up Pollen Sensor from a config entry."""
-    hass.data[DOMAIN]['sensor'] = PollenSensor(hass.data[DOMAIN][CONF_LATITUDE], hass.data[DOMAIN][CONF_LONGITUDE])
-    return True
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up the component from a config entry created in the UI."""
+    hass.data.setdefault(DOMAIN, {})
 
+    # Set up your platforms like sensor, light, etc.
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "sensor")
+    )
+    # Add additional platforms here
+
+    return True
