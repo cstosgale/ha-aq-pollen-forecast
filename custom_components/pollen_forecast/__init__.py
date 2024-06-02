@@ -6,6 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 
 from .sensor import PollenSensor
+from .const import DOMAIN
 
 CONFIG_SCHEMA = vol.Schema({vol.Optional(CONF_LATITUDE): float, vol.Optional(CONF_LONGITUDE): float}, extra=vol.ALLOW_EXTRA)
 
