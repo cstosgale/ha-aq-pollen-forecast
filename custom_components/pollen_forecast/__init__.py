@@ -13,6 +13,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the component from a config entry created in the UI."""
     hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = entry.data
 
     # Set up your platforms like sensor, light, etc.
     hass.async_create_task(
