@@ -1,6 +1,6 @@
 {
   "codeowners": ["@cstosgale"],
-  "config_flow": false,
+  "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/cstosgale/ha-pollen-forecast",
   "domain": "pollen_forecast",
