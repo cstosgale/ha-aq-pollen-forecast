@@ -11,8 +11,8 @@ class MyCustomComponentConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Set the default values in the form
         data_schema = vol.Schema({
-            vol.Required(CONF_LATITUDE, default=hass_latitude): str,
-            vol.Required(CONF_LONGITUDE, default=hass_longitude): str
+            vol.Required(CONF_LATITUDE, default=hass_latitude): float,
+            vol.Required(CONF_LONGITUDE, default=hass_longitude): float
         })
 
         if user_input is not None:
