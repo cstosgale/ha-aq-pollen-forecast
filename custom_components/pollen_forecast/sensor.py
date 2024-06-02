@@ -12,6 +12,11 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE
 )
+from homeassistant.helpers.typing import (
+    ConfigType,
+    DiscoveryInfoType
+)
+from typing import Any, Callable, Dict, Optional
 
 async def async_setup_entry(
     hass: core.HomeAssistant,
@@ -20,8 +25,16 @@ async def async_setup_entry(
 ):
     """Setup sensors from a config entry created in the integrations UI."""
     config = hass.data[DOMAIN][config_entry.entry_id]
-    session = async_get_clientsession(hass)
-    sensors = [PollenSensor(CONF_LATITUDE, CONF_LONGITUDE)]
+    sensors = [PollenSensor(config[CONF_LATITUDE], config[CONF_LONGITUDE])]
+    async_add_entities(sensors, update_before_add=True)
+
+async def async_setup_platform(
+    config: ConfigType,
+    async_add_entities: Callable,
+    discovery_info: Optional[DiscoveryInfoType] = None,
+) -> None:
+    """Set up the sensor platform."""
+    sensors = [PollenSensor(config[CONF_LATITUDE], config[CONF_LONGITUDE])]
     async_add_entities(sensors, update_before_add=True)
 
 class PollenSensor(Entity):
