@@ -6,6 +6,6 @@
   "domain": "pollen_forecast",
   "iot_class": "assumed_state",
   "name": "Pollen Forecast",
-  "requirements": [],
+  "requirements": ["openmeteo_requests","requests_cache", "pandas", "retry_requests"],
   "version": "1.0.0"
 }
