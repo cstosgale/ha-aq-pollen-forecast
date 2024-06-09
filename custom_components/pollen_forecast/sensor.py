@@ -39,8 +39,7 @@ class PollenSensor(Entity):
         self._latitude = latitude
         self._longitude = longitude
 
-    _attr_name = "Pollen Sensor"
-    _attr_device_class = SensorDeviceClass.PM25
+    _attr_name = "Current Grass Pollen"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_unique_id = f"{DOMAIN}--{_attr_name}"
 
