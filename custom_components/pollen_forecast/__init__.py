@@ -1,24 +1,46 @@
-"""Pollen Forecast custom component."""
+"""The Pollen Forecast integration."""
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
+from __future__ import annotations
+
+import asyncio
+
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
+
 from .const import DOMAIN
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the component from configuration.yaml (if any)."""
-    # Here you can import configuration from configuration.yaml if necessary
-    return True
+# TODO List the platforms that you want to support.
+# For your initial PR, limit it to 1 platform.
+PLATFORMS: list[Platform] = [Platform.SENSOR]
 
+
+# TODO Update entry annotation
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up the component from a config entry created in the UI."""
+    """Set up Pollen Forecast from a config entry."""
+
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+    hass_data = dict(entry.data)
+    hass.data[DOMAIN][entry.entry_id] = hass_data
 
-    # Set up your platforms like sensor, light, etc.
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "sensor")
-    )
-    # Add additional platforms here
-
+    # Forward the setup to each platform.
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(entry, platform)
+                for platform in PLATFORMS
+            ]
+        )
+    )
+
+    # Remove config entry from domain.
+    if unload_ok:
+        hass.data[DOMAIN].pop(entry.entry_id)
+
+    return unload_ok
