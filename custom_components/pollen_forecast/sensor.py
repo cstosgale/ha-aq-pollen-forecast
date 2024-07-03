@@ -6,14 +6,13 @@ from retry_requests import retry
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import DOMAIN
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -42,6 +41,9 @@ class PollenSensor(Entity):
     _attr_name = "Current Grass Pollen"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_unique_id = f"{DOMAIN}--{_attr_name}"
+    _attr_device_class = SensorDeviceClass.VOLUME
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
 
     @property
     def state(self):
@@ -80,9 +82,9 @@ class PollenSensor(Entity):
 
         # Current values. The order of variables needs to be the same as requested.
         current = response.Current()
-        current_grass_pollen = current.Variables(0).Value()
+        current_grass_pollen = float(current.Variables(0).Value())
 
         # print(f"Current time {current.Time()}")
         # print(f"Current grass_pollen {current_grass_pollen}")
 
-        self._state = current_grass_pollen
+        self._state = round(current_grass_pollen,2)
