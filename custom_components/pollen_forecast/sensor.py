@@ -6,7 +6,7 @@ from retry_requests import retry
 from datetime import timedelta, date
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass # type: ignore
 from homeassistant.config_entries import ConfigEntry # type: ignore
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER # type: ignore
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONCENTRATION_MICROGRAMS_PER_CUBIC_METER # type: ignore
 from homeassistant.core import HomeAssistant # type: ignore
 from homeassistant.helpers.entity import Entity # type: ignore
 from homeassistant.helpers.entity import DeviceInfo # type: ignore
@@ -55,7 +55,7 @@ async def async_setup_entry(
     latitude = entry.data[CONF_LATITUDE]
     longitude = entry.data[CONF_LONGITUDE]
 
-    sensors = [OPENMETEOSensor(coordinator, name, latitude, longitude, description) for description in SENSOR_TYPES]
+    sensors = [OM_POLLEN_SENSOR(coordinator, name, latitude, longitude, description) for description in SENSOR_TYPES]
     async_add_entities(sensors, update_before_add=True)
 
 
@@ -73,10 +73,10 @@ async def async_setup_platform(
     latitude = config[CONF_LATITUDE]
     longitude = config[CONF_LONGITUDE]
 
-    sensors = [OPENMETEOSensor(coordinator, name, latitude, longitude, description) for description in SENSOR_TYPES]
+    sensors = [OM_POLLEN_SENSOR(coordinator, name, latitude, longitude, description) for description in SENSOR_TYPES]
     async_add_entities(sensors, update_before_add=True)
 
-class OPENMETEOSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
+class OM_BASE_Sensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
     """Define an Open Meteo sensor."""
 
     def __init__(
@@ -98,9 +98,7 @@ class OPENMETEOSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         self.entity_description = description
         self._latitude = latitude
         self._longitude = longitude
-        self._attr_device_class = SensorDeviceClass.VOLUME
-        self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_unit_of_measurement = CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER
+
 
     @property
     def available(self) -> bool:
@@ -109,8 +107,12 @@ class OPENMETEOSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> str | date | None:
-        value = self.coordinator.data["current"][self.entity_description.key]
+        value = self.coordinator.data["current"][self.entity_description.key] * 1000
         if value and self.entity_description.device_class == SensorDeviceClass.DATE:
             return date.fromisoformat(value)
         return value
-    
+
+class OM_POLLEN_SENSOR(OM_BASE_Sensor):
+        _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
+        _attr_state_class = SensorStateClass.MEASUREMENT
+        _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER

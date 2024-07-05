@@ -11,7 +11,10 @@ from homeassistant.helpers.update_coordinator import ( # type: ignore
     UpdateFailed,
 )
 
-from .const import AQAPI_URL
+from .const import (
+    AQAPI_URL,
+    AQAPI_CURRENT
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +49,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
                 params={
                     "latitude": self._latitude,
                     "longitude": self._longitude,
-                    "current": "grass_pollen",
+                    "current": AQAPI_CURRENT,
                     "timezone": "Europe/London",
                     "forecast_days": 1,
                     "domains": "cams_europe",
