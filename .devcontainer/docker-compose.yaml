@@ -1,7 +1,9 @@
 services:
   hadev:
     container_name: hadev
-    image: homeassistant/home-assistant:latest
+    build:
+      context: ../../core
+      dockerfile: Dockerfile.dev
     ports:
       - 8123:8123/tcp
     volumes:
