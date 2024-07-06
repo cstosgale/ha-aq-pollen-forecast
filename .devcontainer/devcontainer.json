@@ -1,5 +1,12 @@
 {
   "dockerComposeFile": "docker-compose.yaml",
   "service": "hadev",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.pylint"
+      ]
+    }
+  }
 }
