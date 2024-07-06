@@ -1,7 +1,7 @@
 {
   "name": "Example devcontainer for add-on repositories",
   "image": "ghcr.io/home-assistant/devcontainer:addons",
-  "appPort": ["7123:8123", "7357:4357"],
+  "appPort": ["8123:8123", "7357:4357"],
   "postStartCommand": "bash devcontainer_bootstrap && supervisor_run",
   "runArgs": ["-e", "GIT_EDITOR=code --wait", "--privileged"],
   "containerEnv": {
@@ -24,5 +24,9 @@
       }
     }
   },
-  "mounts": [ "type=volume,target=/var/lib/docker" ]
+  "mounts": [
+    "type=volume,target=/var/lib/docker",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/Documents/Github/devcontainers/hadev/config,target=/tmp/config,type=bind",
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/Documents/Github/${localWorkspaceFolderBasename}/custom_components,target=/tmp/supervisor_data/homeassistant/custom_components,type=bind"
+  ]
 }

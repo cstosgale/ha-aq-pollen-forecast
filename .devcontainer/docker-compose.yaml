@@ -1,9 +1,7 @@
 services:
   hadev:
     container_name: hadev
-    build:
-      context: ../../core
-      dockerfile: Dockerfile.dev
+    
     ports:
       - 8123:8123/tcp
     volumes:
