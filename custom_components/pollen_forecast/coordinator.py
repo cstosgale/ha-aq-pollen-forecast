@@ -2,7 +2,7 @@
 from datetime import timedelta
 import logging
 from homeassistant.const import ( # type: ignore
-    CONF_LATITUDE, 
+    CONF_LATITUDE,
     CONF_LONGITUDE
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError # type: ignore
@@ -13,7 +13,8 @@ from homeassistant.helpers.update_coordinator import ( # type: ignore
 
 from .const import (
     AQAPI_URL,
-    AQAPI_CURRENT
+    AQAPI_CURRENT,
+    AQAPI_HOURLY
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
                     "latitude": self._latitude,
                     "longitude": self._longitude,
                     "current": AQAPI_CURRENT,
+                    "hourly": AQAPI_HOURLY,
                     "timezone": "Europe/London",
                     "forecast_days": 1,
                     "domains": "cams_europe",

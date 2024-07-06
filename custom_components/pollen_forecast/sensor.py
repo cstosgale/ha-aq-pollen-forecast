@@ -23,7 +23,11 @@ from homeassistant.helpers.update_coordinator import ( # type: ignore
     CoordinatorEntity,
 )
 
-from .const import DOMAIN
+from .const import (
+    DOMAIN,
+    POLLEN_TYPES,
+    GAS_TYPES
+)
 
 from .coordinator import OPENMETEOCoordinator
 
@@ -33,10 +37,44 @@ SCAN_INTERVAL = timedelta(minutes=10)
 
 SENSOR_TYPES = [
     SensorEntityDescription(
+        key="alder_pollen",
+        name="Curent Alder Pollen",
+        icon="mdi:tree"
+    ),
+    SensorEntityDescription(
+        key="birch_pollen",
+        name="Curent Birch Pollen",
+        icon="mdi:tree"
+    ),
+    SensorEntityDescription(
         key="grass_pollen",
         name="Curent Grass Pollen",
-        icon="mdi:flower"
+        icon="mdi:grass"
+    ),
+    SensorEntityDescription(
+        key="mugwort_pollen",
+        name="Curent Mugwort Pollen",
+        icon="mdi:flower-pollen"
+    ),
+    SensorEntityDescription(
+        key="olive_pollen",
+        name="Curent Olive Pollen",
+        icon="mdi:tree"
+    ),
+    SensorEntityDescription(
+        key="ragweed_pollen",
+        name="Curent Ragweed Pollen",
+        icon="mdi:flower-pollen"
     )
+]
+
+SENSOR_TYPES = [
+    SensorEntityDescription(
+        key=key,
+        name=f"{"Current"} {details['name']}",
+        icon=details["icon"]
+    )
+    for key, details in POLLEN_TYPES.items()
 ]
 
 async def async_setup_entry(
@@ -52,36 +90,39 @@ async def async_setup_entry(
 
     await coordinator.async_refresh()
 
-    name = "Test"
-    latitude = entry.data[CONF_LATITUDE]
-    longitude = entry.data[CONF_LONGITUDE]
-
-    sensors = [OMPollenSensor(coordinator,
-                              name,
-                              latitude,
-                              longitude,
-                              description) for description in SENSOR_TYPES]
+    name = "Default Location"
+    config_data = entry.data
+    pollensensors = [OMPollenSensor(coordinator,
+                            name,
+                            config_data,
+                            description) for description in SENSOR_TYPES
+                            if description.key in POLLEN_TYPES]
+    gassensors = [OMGasSensor(coordinator,
+                            name,
+                            config_data,
+                            description) for description in SENSOR_TYPES
+                            if description.key in GAS_TYPES]
+    sensors = pollensensors + gassensors
     async_add_entities(sensors, update_before_add=True)
 
 async def async_setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
+    entry: ConfigType,
     async_add_entities: AddEntitiesCallback,
     _: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the sensor platform."""
     session = async_get_clientsession(hass)
-    coordinator = OPENMETEOCoordinator(hass, session, config)
+    coordinator = OPENMETEOCoordinator(hass, session, entry)
 
-    name = "Test"
-    latitude = config[CONF_LATITUDE]
-    longitude = config[CONF_LONGITUDE]
+    name = "Default Location"
+
+    config_data = entry.data
 
     sensors = [OMPollenSensor(coordinator,
-                              name,
-                              latitude,
-                              longitude,
-                              description) for description in SENSOR_TYPES]
+                            name,
+                            config_data,
+                            description) for description in SENSOR_TYPES]
     async_add_entities(sensors, update_before_add=True)
 
 class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
@@ -91,8 +132,7 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         self,
         coordinator: OPENMETEOCoordinator,
         name: str,
-        latitude: float,
-        longitude: float,
+        config_data: dict,
         description: SensorEntityDescription,
     ) -> None:
         """Initialize."""
@@ -104,8 +144,8 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         self._attr_unique_id = f"{DOMAIN}-{name}-{description.key}".lower()
         self.entity_id = f"sensor.{DOMAIN}_{name}_{description.key}".lower()
         self.entity_description = description
-        self._latitude = latitude
-        self._longitude = longitude
+        self._latitude = config_data[CONF_LATITUDE]
+        self._longitude = config_data[CONF_LONGITUDE]
 
 
     @property
@@ -122,6 +162,13 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
 
 class OMPollenSensor(OMBaseSensor):
     """ Pollen Sensor Class"""
+
+    _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+
+class OMGasSensor(OMBaseSensor):
+    """ Gas Sensor Class"""
 
     _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
     _attr_state_class = SensorStateClass.MEASUREMENT
