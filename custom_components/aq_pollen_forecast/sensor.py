@@ -3,6 +3,7 @@
 import logging
 from datetime import datetime, timedelta, date
 from homeassistant.config_entries import ConfigEntry # type: ignore
+from homeassistant.exceptions import HomeAssistantError # type: ignore
 from homeassistant.const import ( # type: ignore
     CONF_LATITUDE,
     CONF_LONGITUDE,
@@ -71,7 +72,12 @@ def get_max_value_for_date(data, key, tptype):
     ]
 
     # Calculate the maximum value for the target date
-    max_value = max(filtered_values)
+    try:
+        max_value = max(filtered_values)
+    except ValueError as err:
+        err_str = str(err)
+        _LOGGER.exception("Issue calculating max value for %s", key)
+        raise UnknownError from err
 
     return max_value
 
@@ -185,3 +191,9 @@ class OMSensor(OMBaseSensor):
     _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+
+class OPENMETEOError(HomeAssistantError):
+    """Base error."""
+
+class UnknownError(OPENMETEOError):
+    """Raised when an unknown error occurs."""
