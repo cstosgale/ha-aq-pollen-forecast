@@ -34,7 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=10)
 
 # Create a list of all Current Sensors
-CURRENT_SENSOR_TYPES = [
+SENSOR_TYPES = [
     SensorEntityDescription(
         key=key,
         name=f"{"Current"} {value['name']}",
@@ -44,7 +44,7 @@ CURRENT_SENSOR_TYPES = [
 ]
 
 # Create a list of all Forecast Sensors
-F_1D_SENSOR_TYPES = [
+SENSOR_TYPES = SENSOR_TYPES + [
     SensorEntityDescription(
         key=key,
         name=f"{value['name']} {"1d"}",
@@ -63,7 +63,7 @@ def get_max_value_for_date(data, key, tptype):
     values = data["hourly"][key]
 
     # Get Target date based on provided value:
-    target_date = (datetime.now() + timedelta(days=tptype [1])).strftime("%Y-%m-%d")
+    target_date = (datetime.now() + timedelta(days=int(tptype [0]))).strftime("%Y-%m-%d")
 
     # Filter the grass pollen values for the target date
     filtered_values = [
@@ -71,10 +71,7 @@ def get_max_value_for_date(data, key, tptype):
     ]
 
     # Calculate the maximum value for the target date
-    if filtered_values:
-        max_value = max(filtered_values)
-    else:
-        max_value = None
+    max_value = max(filtered_values)
 
     return max_value
 
@@ -90,7 +87,7 @@ async def async_setup_entry(
 
     await coordinator.async_refresh()
 
-    name = "Default Location"
+    name = "Home"
 
     config_data = entry.data
 
@@ -103,12 +100,11 @@ async def async_setup_entry(
         sensor = [OMBaseSensor(coordinator,
                         name,
                         config_data,
-                        "C",
                         value["device_class"],
                         value["uom"],
                         description
 
-            ) for description in CURRENT_SENSOR_TYPES if description.key == key]
+            ) for description in SENSOR_TYPES if description.key == key]
         sensors = sensors + sensor
 
     # _LOGGER.warning("Created Sensors, list: %s", sensors)
@@ -122,7 +118,6 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         coordinator: OPENMETEOCoordinator,
         name: str,
         config_data: dict,
-        tptype: str,
         device_class: str,
         uom: str,
         description: SensorEntityDescription
@@ -133,12 +128,12 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
             identifiers={(DOMAIN, f"{name}")},
             name=name,
         )
-        self._attr_unique_id = f"{DOMAIN}-{name}-{description.key}".lower()
-        self.entity_id = f"sensor.{DOMAIN}_{description.key}".lower()
+        self._attr_unique_id = f"{DOMAIN}-{name}-{description.name.replace(" ","-")}".lower()
+        self.entity_id = f"sensor.{DOMAIN}_{name}_{description.name.replace(" ","_")}".lower()
         self.entity_description = description
+        self._name = description.name
         self._latitude = config_data[CONF_LATITUDE]
         self._longitude = config_data[CONF_LONGITUDE]
-        self._tptype = tptype
         if device_class != '':
             self._attr_device_class = getattr(SensorDeviceClass, device_class)
         self._attr_state_class = SensorStateClass.MEASUREMENT
@@ -152,14 +147,16 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> str | date | None:
-        if self._tptype == "C":
+        if self._name.startswith("Current"):
             value = self.coordinator.data["current"][self.entity_description.key]
-        if "H" in self._tptype:
+        elif self._name.endswith("d"):
             value = get_max_value_for_date(
                 self.coordinator.data,
                 self.entity_description.key,
-                self._tptype
+                self._name[-2:]
                 )
+        else:
+            _LOGGER.warning("Sensor with name %s has invalid name and will have no value", self._name)
         return value
 
 class OMPollenSensor(OMBaseSensor):

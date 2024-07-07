@@ -4,7 +4,7 @@ from homeassistant.const import ( # type: ignore
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 )
 
-DOMAIN = 'pollen_forecast'
+DOMAIN = 'aq_pollen_forecast'
 AQAPI_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality'
 
 # For the below, tptype determines if the sensor can be used for
