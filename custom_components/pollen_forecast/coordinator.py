@@ -1,5 +1,6 @@
 """DVLA Coordinator."""
 from datetime import timedelta
+import json
 import logging
 from homeassistant.const import ( # type: ignore
     CONF_LATITUDE,
@@ -53,8 +54,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
                     "current": AQAPI_CURRENT,
                     "hourly": AQAPI_HOURLY,
                     "timezone": "Europe/London",
-                    "forecast_days": 1,
-                    "domains": "cams_europe",
+                    "forecast_days": 1
                 }
             )
             body = await resp.json()
@@ -80,7 +80,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
                 f"AQAPI_HOURLY: {AQAPI_HOURLY}"
                 f"Unknown Error: {error}"
             )
-
+        _LOGGER.warning(json.dumps(body))
         return body
 
 

@@ -1,9 +1,7 @@
 """Pollen Sensor for Home Assistant"""
 
-import json
 import logging
 from datetime import datetime, timedelta, date
-import sys
 from homeassistant.config_entries import ConfigEntry # type: ignore
 from homeassistant.const import ( # type: ignore
     CONF_LATITUDE,
@@ -107,6 +105,7 @@ async def async_setup_entry(
                         config_data,
                         "C",
                         value["device_class"],
+                        value["uom"],
                         description
 
             ) for description in CURRENT_SENSOR_TYPES if description.key == key]
@@ -125,6 +124,7 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         config_data: dict,
         tptype: str,
         device_class: str,
+        uom: str,
         description: SensorEntityDescription
     ) -> None:
         """Initialize."""
@@ -139,9 +139,11 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         self._latitude = config_data[CONF_LATITUDE]
         self._longitude = config_data[CONF_LONGITUDE]
         self._tptype = tptype
-        self._attr_device_class = getattr(SensorDeviceClass, device_class)
+        if device_class != '':
+            self._attr_device_class = getattr(SensorDeviceClass, device_class)
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        # self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        if uom != '':
+            self._attr_native_unit_of_measurement = uom
 
     @property
     def available(self) -> bool:
@@ -186,4 +188,3 @@ class OMSensor(OMBaseSensor):
     _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
-
