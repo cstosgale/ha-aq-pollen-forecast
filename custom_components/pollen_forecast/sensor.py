@@ -1,7 +1,9 @@
 """Pollen Sensor for Home Assistant"""
 
+import json
 import logging
-from datetime import timedelta, date
+from datetime import datetime, timedelta, date
+import sys
 from homeassistant.config_entries import ConfigEntry # type: ignore
 from homeassistant.const import ( # type: ignore
     CONF_LATITUDE,
@@ -12,7 +14,6 @@ from homeassistant.core import HomeAssistant # type: ignore
 from homeassistant.helpers.entity import DeviceInfo # type: ignore
 from homeassistant.helpers.entity_platform import AddEntitiesCallback # type: ignore
 from homeassistant.helpers.aiohttp_client import async_get_clientsession # type: ignore
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType # type: ignore
 from homeassistant.components.sensor import ( # type: ignore
     SensorEntity,
     SensorEntityDescription,
@@ -25,8 +26,7 @@ from homeassistant.helpers.update_coordinator import ( # type: ignore
 
 from .const import (
     DOMAIN,
-    POLLEN_TYPES,
-    GAS_TYPES
+    SENSOR_TYPES_DICT
 )
 
 from .coordinator import OPENMETEOCoordinator
@@ -35,47 +35,50 @@ _LOGGER = logging.getLogger(__name__)
 # Time between updating data from GitHub
 SCAN_INTERVAL = timedelta(minutes=10)
 
-SENSOR_TYPES = [
-    SensorEntityDescription(
-        key="alder_pollen",
-        name="Curent Alder Pollen",
-        icon="mdi:tree"
-    ),
-    SensorEntityDescription(
-        key="birch_pollen",
-        name="Curent Birch Pollen",
-        icon="mdi:tree"
-    ),
-    SensorEntityDescription(
-        key="grass_pollen",
-        name="Curent Grass Pollen",
-        icon="mdi:grass"
-    ),
-    SensorEntityDescription(
-        key="mugwort_pollen",
-        name="Curent Mugwort Pollen",
-        icon="mdi:flower-pollen"
-    ),
-    SensorEntityDescription(
-        key="olive_pollen",
-        name="Curent Olive Pollen",
-        icon="mdi:tree"
-    ),
-    SensorEntityDescription(
-        key="ragweed_pollen",
-        name="Curent Ragweed Pollen",
-        icon="mdi:flower-pollen"
-    )
-]
-
-SENSOR_TYPES = [
+# Create a list of all Current Sensors
+CURRENT_SENSOR_TYPES = [
     SensorEntityDescription(
         key=key,
-        name=f"{"Current"} {details['name']}",
-        icon=details["icon"]
+        name=f"{"Current"} {value['name']}",
+        icon=value["icon"]
     )
-    for key, details in POLLEN_TYPES.items()
+    for key, value in SENSOR_TYPES_DICT.items() if "C" in value["tptype"]
 ]
+
+# Create a list of all Forecast Sensors
+F_1D_SENSOR_TYPES = [
+    SensorEntityDescription(
+        key=key,
+        name=f"{value['name']} {"1d"}",
+        icon=value["icon"]
+    )
+    for key, value in SENSOR_TYPES_DICT.items() if "H" in value["tptype"]
+]
+
+def get_max_value_for_date(data, key, tptype):
+    """Function to get the maximum value from the forecast data for the following days"""
+    # N.B. Expects tptype to follow the format H1, H2, or H3
+    # with the number denoting the forecasted day
+
+    # Extract the time and grass pollen values
+    times = data["hourly"]["time"]
+    values = data["hourly"][key]
+
+    # Get Target date based on provided value:
+    target_date = (datetime.now() + timedelta(days=tptype [1])).strftime("%Y-%m-%d")
+
+    # Filter the grass pollen values for the target date
+    filtered_values = [
+        values[i] for i in range(len(times)) if times[i].startswith(target_date)
+    ]
+
+    # Calculate the maximum value for the target date
+    if filtered_values:
+        max_value = max(filtered_values)
+    else:
+        max_value = None
+
+    return max_value
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -83,7 +86,6 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ):
     """Setup sensors from a config entry created in the integrations UI."""  # noqa: D401
-    # config = hass.data[DOMAIN][config_entry.entry_id]
 
     session = async_get_clientsession(hass)
     coordinator = OPENMETEOCoordinator(hass, session, entry.data)
@@ -91,38 +93,26 @@ async def async_setup_entry(
     await coordinator.async_refresh()
 
     name = "Default Location"
-    config_data = entry.data
-    pollensensors = [OMPollenSensor(coordinator,
-                            name,
-                            config_data,
-                            description) for description in SENSOR_TYPES
-                            if description.key in POLLEN_TYPES]
-    gassensors = [OMGasSensor(coordinator,
-                            name,
-                            config_data,
-                            description) for description in SENSOR_TYPES
-                            if description.key in GAS_TYPES]
-    sensors = pollensensors + gassensors
-    async_add_entities(sensors, update_before_add=True)
-
-async def async_setup_platform(
-    hass: HomeAssistant,
-    entry: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    _: DiscoveryInfoType | None = None,
-) -> None:
-    """Set up the sensor platform."""
-    session = async_get_clientsession(hass)
-    coordinator = OPENMETEOCoordinator(hass, session, entry)
-
-    name = "Default Location"
 
     config_data = entry.data
 
-    sensors = [OMPollenSensor(coordinator,
-                            name,
-                            config_data,
-                            description) for description in SENSOR_TYPES]
+    # Create a list of the sensors to create
+    # each one using the correct class based on the class defined in the dictionary
+    sensors = []
+    for key, value in SENSOR_TYPES_DICT.items():
+        # Get a class object for the name of the class value in the dictionary
+        # class_obj = getattr(sys.modules[__name__], value["class"])
+        sensor = [OMBaseSensor(coordinator,
+                        name,
+                        config_data,
+                        "C",
+                        value["device_class"],
+                        description
+
+            ) for description in CURRENT_SENSOR_TYPES if description.key == key]
+        sensors = sensors + sensor
+
+    # _LOGGER.warning("Created Sensors, list: %s", sensors)
     async_add_entities(sensors, update_before_add=True)
 
 class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
@@ -133,7 +123,9 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
         coordinator: OPENMETEOCoordinator,
         name: str,
         config_data: dict,
-        description: SensorEntityDescription,
+        tptype: str,
+        device_class: str,
+        description: SensorEntityDescription
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
@@ -142,11 +134,14 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
             name=name,
         )
         self._attr_unique_id = f"{DOMAIN}-{name}-{description.key}".lower()
-        self.entity_id = f"sensor.{DOMAIN}_{name}_{description.key}".lower()
+        self.entity_id = f"sensor.{DOMAIN}_{description.key}".lower()
         self.entity_description = description
         self._latitude = config_data[CONF_LATITUDE]
         self._longitude = config_data[CONF_LONGITUDE]
-
+        self._tptype = tptype
+        self._attr_device_class = getattr(SensorDeviceClass, device_class)
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+        # self._attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
 
     @property
     def available(self) -> bool:
@@ -155,9 +150,14 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> str | date | None:
-        value = self.coordinator.data["current"][self.entity_description.key] * 1000
-        if value and self.entity_description.device_class == SensorDeviceClass.DATE:
-            return date.fromisoformat(value)
+        if self._tptype == "C":
+            value = self.coordinator.data["current"][self.entity_description.key]
+        if "H" in self._tptype:
+            value = get_max_value_for_date(
+                self.coordinator.data,
+                self.entity_description.key,
+                self._tptype
+                )
         return value
 
 class OMPollenSensor(OMBaseSensor):
@@ -173,3 +173,17 @@ class OMGasSensor(OMBaseSensor):
     _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+
+class OMAQISensor(OMBaseSensor):
+    """ AQI Sensor Class"""
+
+    _attr_device_class = SensorDeviceClass.AQI
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+class OMSensor(OMBaseSensor):
+    """ Gas Sensor Class"""
+
+    _attr_device_class = SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+

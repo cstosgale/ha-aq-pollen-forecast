@@ -76,6 +76,8 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
         if "error" in body:
             error = body["reason"]
             raise UnknownError(
+                f"AQAPI_CURRENT: {AQAPI_CURRENT}"
+                f"AQAPI_HOURLY: {AQAPI_HOURLY}"
                 f"Unknown Error: {error}"
             )
 
