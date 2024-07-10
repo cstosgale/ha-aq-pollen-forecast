@@ -3,9 +3,9 @@
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/cstosgale/ha-pollen-forecast",
-  "domain": "pollen_forecast",
+  "domain": "aq_pollen_forecast",
   "iot_class": "cloud_polling",
-  "name": "Pollen Forecast",
+  "name": "Air Quality and Pollen Forecast",
   "requirements": ["openmeteo_requests","requests_cache", "pandas", "retry_requests"],
   "version": "1.0.0"
 }

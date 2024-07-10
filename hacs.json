@@ -1,5 +1,5 @@
 {
-  "name": "Pollen Forecast",
+  "name": "Air Quality and Pollen Forecast",
   "render_readme": true,
   "iot_class": "assumed_state"
 }

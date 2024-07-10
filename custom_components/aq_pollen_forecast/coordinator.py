@@ -1,4 +1,6 @@
-"""DVLA Coordinator."""
+"""Open Meteo Coordinator."""
+# For API Documentation see https://open-meteo.com/en/docs/air-quality-api
+
 from datetime import timedelta
 import logging
 from homeassistant.const import ( # type: ignore
@@ -31,7 +33,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
             # Name of the data. For logging purposes.
             name="OPENMETEO",
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=timedelta(seconds=21600),
+            update_interval=timedelta(seconds=3600),
         )
         self.session = session
         self._latitude = data[CONF_LATITUDE]
@@ -53,8 +55,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
                     "current": AQAPI_CURRENT,
                     "hourly": AQAPI_HOURLY,
                     "timezone": "Europe/London",
-                    "forecast_days": 1,
-                    "domains": "cams_europe",
+                    "forecast_days": 4
                 }
             )
             body = await resp.json()
@@ -76,9 +77,10 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
         if "error" in body:
             error = body["reason"]
             raise UnknownError(
+                f"AQAPI_CURRENT: {AQAPI_CURRENT}"
+                f"AQAPI_HOURLY: {AQAPI_HOURLY}"
                 f"Unknown Error: {error}"
             )
-
         return body
 
 
