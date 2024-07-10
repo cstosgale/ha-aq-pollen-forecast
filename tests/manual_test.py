@@ -2,8 +2,8 @@
 
 import sys
 import os
-import requests
 import json
+import requests
 
 # Add the parent directory to the sys.path
 sys.path.insert(0, os.path.abspath('../'))
@@ -15,10 +15,10 @@ from custom_components.aq_pollen_forecast.const import (
     AQAPI_URL
 )
 
-def make_api_request(url, params):
+def make_api_request(url, paramaters):
     """Makes an API Request"""
     try:
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=paramaters, timeout=10)
         response.raise_for_status()  # Raise an exception for HTTP errors
         return response.json()  # Assuming the response is in JSON format
     except requests.exceptions.RequestException as e:
