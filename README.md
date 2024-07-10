@@ -1,4 +1,4 @@
-# Pollen Forecast for Home Assistant
+# Air Quality and Pollen Forecast for Home Assistant
 
 This custom component for Home Assistant provides Air Quality and Pollen Data from https://open-meteo.com/en/docs/air-quality-api.
 
