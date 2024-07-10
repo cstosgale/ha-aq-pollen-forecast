@@ -1,6 +1,4 @@
 {
-  "domains": ["sensor"],
   "name": "Air Quality and Pollen Forecast",
   "render_readme": true
-
 }
