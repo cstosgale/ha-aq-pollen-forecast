@@ -55,7 +55,7 @@ class OPENMETEOCoordinator(DataUpdateCoordinator):
                     "current": AQAPI_CURRENT,
                     "hourly": AQAPI_HOURLY,
                     "timezone": "Europe/London",
-                    "forecast_days": 1
+                    "forecast_days": 4
                 }
             )
             body = await resp.json()

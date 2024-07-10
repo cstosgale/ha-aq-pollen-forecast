@@ -44,15 +44,16 @@ SENSOR_TYPES = [
     for key, value in SENSOR_TYPES_DICT.items() if "C" in value["tptype"]
 ]
 
-# Create a list of all Forecast Sensors
-SENSOR_TYPES = SENSOR_TYPES + [
-    SensorEntityDescription(
-        key=key,
-        name=f"{value['name']} {"1d"}",
-        icon=value["icon"]
-    )
-    for key, value in SENSOR_TYPES_DICT.items() if "H" in value["tptype"]
-]
+# Create a list of all Forecast Sensors. This includes 0 for today's Forecast.
+for i in range(4):
+    SENSOR_TYPES = SENSOR_TYPES + [
+        SensorEntityDescription(
+            key=key,
+            name=f"{value['name']} {i}d",
+            icon=value["icon"]
+        )
+        for key, value in SENSOR_TYPES_DICT.items() if "H" in value["tptype"]
+    ]
 
 def get_max_value_for_date(data, key, tptype):
     """Function to get the maximum value from the forecast data for the following days"""
@@ -65,7 +66,6 @@ def get_max_value_for_date(data, key, tptype):
 
     # Get Target date based on provided value:
     target_date = (datetime.now() + timedelta(days=int(tptype [0]))).strftime("%Y-%m-%d")
-
     # Filter the grass pollen values for the target date
     filtered_values = [
         values[i] for i in range(len(times)) if times[i].startswith(target_date)
@@ -76,7 +76,7 @@ def get_max_value_for_date(data, key, tptype):
         max_value = max(filtered_values)
     except ValueError as err:
         err_str = str(err)
-        _LOGGER.exception("Issue calculating max value for %s", key)
+        _LOGGER.exception("Issue calculating max value for %s. error: %s", key, err_str)
         raise UnknownError from err
 
     return max_value
@@ -113,7 +113,6 @@ async def async_setup_entry(
             ) for description in SENSOR_TYPES if description.key == key]
         sensors = sensors + sensor
 
-    # _LOGGER.warning("Created Sensors, list: %s", sensors)
     async_add_entities(sensors, update_before_add=True)
 
 class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
@@ -162,7 +161,9 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
                 self._name[-2:]
                 )
         else:
-            _LOGGER.warning("Sensor with name %s has invalid name and will have no value", self._name)
+            _LOGGER.warning(
+                "Sensor with name %s has invalid name and will have no value", self._name
+                )
         return value
 
 class OMPollenSensor(OMBaseSensor):

@@ -1,7 +1,8 @@
 '''Constants'''
 
 from homeassistant.const import ( # type: ignore
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_PARTS_PER_MILLION
 )
 
 DOMAIN = 'aq_pollen_forecast'
@@ -15,43 +16,43 @@ SENSOR_TYPES_DICT = {
         'name': 'Alder Pollen',
         'icon': 'mdi:tree',
         'tptype': 'CH',
-        'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
-        'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        'device_class':'VOLATILE_ORGANIC_COMPOUNDS_PARTS',
+        'uom': CONCENTRATION_PARTS_PER_MILLION
     },
     'birch_pollen': {
         'name': 'Birch Pollen',
         'icon': 'mdi:tree',
         'tptype': 'CH',
-        'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
-        'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        'device_class':'VOLATILE_ORGANIC_COMPOUNDS_PARTS',
+        'uom': CONCENTRATION_PARTS_PER_MILLION
     },
     'grass_pollen': {
         'name': 'Grass Pollen',
         'icon': 'mdi:grass',
         'tptype': 'CH',
-        'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
-        'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        'device_class':'VOLATILE_ORGANIC_COMPOUNDS_PARTS',
+        'uom': CONCENTRATION_PARTS_PER_MILLION
     },
     'mugwort_pollen': {
         'name': 'Mugwort Pollen',
         'icon': 'mdi:flower-pollen',
         'tptype': 'CH',
-        'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
-        'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        'device_class':'VOLATILE_ORGANIC_COMPOUNDS_PARTS',
+        'uom': CONCENTRATION_PARTS_PER_MILLION
     },
     'olive_pollen': {
         'name': 'Olive Pollen',
         'icon': 'mdi:tree',
         'tptype': 'CH',
-        'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
-        'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        'device_class':'VOLATILE_ORGANIC_COMPOUNDS_PARTS',
+        'uom': CONCENTRATION_PARTS_PER_MILLION
     },
     'ragweed_pollen': {
         'name': 'Ragweed Pollen',
         'icon': 'mdi:flower-pollen',
         'tptype': 'CH',
-        'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
-        'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+        'device_class':'VOLATILE_ORGANIC_COMPOUNDS_PARTS',
+        'uom': CONCENTRATION_PARTS_PER_MILLION
     },
     'european_aqi': {
         'name': 'European Aqi',
@@ -90,21 +91,21 @@ SENSOR_TYPES_DICT = {
     },
     'nitrogen_dioxide': {
         'name': 'Nitrogen Dioxide',
-        'icon': 'mdi:molecule-no2',
+        'icon': 'mdi:molecule',
         'tptype': 'CH',
         'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
         'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
     },
     'sulphur_dioxide': {
         'name': 'Sulphur Dioxide',
-        'icon': 'mdi:molecule-so2',
+        'icon': 'mdi:molecule',
         'tptype': 'CH',
         'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
         'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
     },
     'ozone': {
         'name': 'Ozone',
-        'icon': 'mdi:molecule-o3',
+        'icon': 'mdi:cloud-circle',
         'tptype': 'CH',
         'device_class':'VOLATILE_ORGANIC_COMPOUNDS',
         'uom': CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
