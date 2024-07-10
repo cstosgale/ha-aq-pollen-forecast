@@ -134,7 +134,7 @@ class OMBaseSensor(CoordinatorEntity[OPENMETEOCoordinator], SensorEntity):
             name=name,
         )
         self._attr_unique_id = f"{DOMAIN}-{name}-{description.name.replace(" ","-")}".lower()
-        self.entity_id = f"sensor.{DOMAIN}_{name}_{description.name.replace(" ","_")}".lower()
+        self.entity_id = f"sensor.{name}_{description.name.replace(" ","_")}".lower()
         self.entity_description = description
         self._name = description.name
         self._latitude = config_data[CONF_LATITUDE]
